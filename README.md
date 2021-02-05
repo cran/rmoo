@@ -3,7 +3,7 @@
 # rmoo - R Multi-Objective Optimization <img src="man/figures/logo.png" align="right" width="150px" alt=""/>
 
 <!-- badges: start -->
-[![R build status](https://github.com/benitezfj/rmoo/workflows/R-CMD-check/badge.svg)](https://github.com/benitezfj/rmoo/actions) [![Codecov test coverage](https://codecov.io/gh/benitezfj/rmoo/branch/master/graph/badge.svg?token=QK4Z2yVUSw)](https://codecov.io/gh/benitezfj/rmoo?branch=master) [![Travis build status](https://travis-ci.com/benitezfj/rmoo.svg?branch=master)](https://travis-ci.com/benitezfj/rmoo) <!-- badges: end -->
+[![R build status](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/workflows/R-CMD-check/badge.svg)](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/actions/) [![Codecov test coverage](https://codecov.io/gh/Evolutionary-Optimization-Laboratory/rmoo/branch/master/graph/badge.svg?token=QK4Z2yVUSw)](https://codecov.io/gh/Evolutionary-Optimization-Laboratory/rmoo?branch=master/) [![Travis build status](https://travis-ci.com/Evolutionary-Optimization-Laboratory/rmoo.svg?branch=master)](https://travis-ci.com/Evolutionary-Optimization-Laboratory/rmoo/) [![CRAN status](https://www.r-pkg.org/badges/version/rmoo)](https://CRAN.R-project.org/package=rmoo/) [![Lifecycle: maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing/) <!-- badges: end -->
 
 ## Overview
 
@@ -13,10 +13,17 @@ A Non-Dominated Sorting based Multi-Objective Optimization package, built upon t
 
 ## Installation
 
+You can install the **stable** version on [R CRAN](https://cran.r-project.org/package=rmoo):
+
 ``` r
-# You can install the development version from GitHub:
+install.packages("rmoo")
+```
+
+Or you can install the **development** version from [GitHub](https://github.com/Evolutionary-Optimization-Laboratory/rmoo):
+
+``` r
 # install.packages("devtools")
-devtools::install_github("benitezfj/rmoo")
+devtools::install_github("Evolutionary-Optimization-Laboratory/rmoo")
 ```
 
 ## Usage
@@ -50,8 +57,36 @@ result <- nsga3(fitness = DTLZ1,
                 popSize = 92,
                 n_partitions = 12,
                 maxiter = 300)
+                
+pcp(object = result)
 ```
 
-![](https://github.com/benitezfj/rmoo/blob/master/man/figures/README-example-1.jpeg)<!-- -->
+![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-1.png)<!-- -->
 
-![](https://github.com/benitezfj/rmoo/blob/master/man/figures/README-example-2.png)<!-- -->
+``` r
+#Scatter without optimal points
+scatter(object = result)
+```
+
+![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-2.png)<!-- -->
+
+``` r
+#Scatter with optimal points (Using reference points as optimal points)
+scatter(object = result, optimal = result@reference_points)
+```
+
+![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-3.png)<!-- -->
+
+``` r
+#Polar Coordinates
+polar(fitness = result@fitness[1:3,])
+```
+
+![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-4.png)<!-- -->
+
+``` r
+#Headmap Plot
+heat_map(fitness = result@fitness[1:3,])
+```
+
+![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-5.png)<!-- -->

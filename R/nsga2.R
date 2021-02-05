@@ -103,7 +103,9 @@
 #'  g <- 1 + rowSums(x[, 2:n, drop = FALSE]) * 9/(n - 1)
 #'  return(cbind(x[, 1], g * (1 - sqrt(x[, 1]/g))))
 #' }
-#' \donttest{
+#'
+#' #Not run:
+#' \dontrun{
 #' result <- nsga2(type = "real-valued",
 #'                 fitness = zdt1,
 #'                 lower = c(0,0),
@@ -129,7 +131,9 @@
 #'     f <- tmp * tmp2 * 0.5 * (1 + g)
 #'     return(f)
 #' }
-#' \donttest{
+#'
+#' #Not run:
+#' \dontrun{
 #' result <- nsga2(type = "real-valued",
 #'                 fitness = dtlz1,
 #'                 lower = c(0,0,0), upper = c(1,1,1),
@@ -156,7 +160,7 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
     names = NULL,
     suggestions = NULL,
     monitor = if (interactive()) nsgaMonitor else FALSE,
-    summary = TRUE,
+    summary = FALSE,
     seed = NULL)
 {
     call <- match.call()
@@ -422,7 +426,7 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
         object@crowdingDistance <- cd
 
         if (summary == TRUE) {
-          fitnessSummary[[iter]] <- nsgaiiSummary(object)
+          fitnessSummary[[iter]] <- Summary(object)
           object@summary <- fitnessSummary
         } else {
           object@summary <- list()
