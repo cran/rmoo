@@ -1,6 +1,6 @@
 Package: rmoo
 Title: Multi-Objective Optimization in R
-Version: 0.1.6
+Version: 0.1.7
 Authors@R: 
     c(person(given = "Francisco",
              family = "Benitez",
@@ -26,7 +26,8 @@ Collate: 'associate.R' 'crowding_distance.R' 'data.R'
         'get_fixed_rowsum_integer_matrix.R' 'miscfun.R' 'niching.R'
         'non_dominated_fronts.R' 'numberOrNAOrMatrix-class.R'
         'nsga-class.R' 'nsga.R' 'nsga2-class.R' 'nsga2.R'
-        'nsga3-class.R' 'nsga3.R' 'nsgaControl.R' 'rmoo.R'
+        'nsga3-class.R' 'nsga3.R' 'nsgaControl.R'
+        'reference_point_multi_layer.R' 'rmoo.R'
         'performance_metrics.R' 'plotting.R' 'sharing.R'
         'update_points.R' 'zzz.R'
 Imports: stats, utils, ecr, graphics, methods, grDevices, ggplot2,
@@ -36,9 +37,9 @@ BugReports: https://github.com/Evolutionary-Optimization-Laboratory/rmoo/issues/
 Suggests: testthat, covr, rgl
 Depends: R (>= 2.10)
 NeedsCompilation: no
-Packaged: 2021-02-05 00:36:48 UTC; Fran
+Packaged: 2021-09-06 23:23:08 UTC; Fran
 Author: Francisco Benitez [aut, cre],
   Diego Pinto Roa [aut] (<https://orcid.org/0000-0003-2479-9876>)
 Maintainer: Francisco Benitez <benitezfj94@gmail.com>
 Repository: CRAN
-Date/Publication: 2021-02-05 05:30:02 UTC
+Date/Publication: 2021-09-07 04:30:02 UTC

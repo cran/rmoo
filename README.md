@@ -3,7 +3,7 @@
 # rmoo - R Multi-Objective Optimization <img src="man/figures/logo.png" align="right" width="150px" alt=""/>
 
 <!-- badges: start -->
-[![R build status](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/workflows/R-CMD-check/badge.svg)](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/actions/) [![Codecov test coverage](https://codecov.io/gh/Evolutionary-Optimization-Laboratory/rmoo/branch/master/graph/badge.svg?token=QK4Z2yVUSw)](https://codecov.io/gh/Evolutionary-Optimization-Laboratory/rmoo?branch=master/) [![Travis build status](https://travis-ci.com/Evolutionary-Optimization-Laboratory/rmoo.svg?branch=master)](https://travis-ci.com/Evolutionary-Optimization-Laboratory/rmoo/) [![CRAN status](https://www.r-pkg.org/badges/version/rmoo)](https://CRAN.R-project.org/package=rmoo/) [![Lifecycle: maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing/) <!-- badges: end -->
+[![R build status](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/workflows/R-CMD-check/badge.svg/)](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/actions/) [![Codecov test coverage](https://codecov.io/gh/Evolutionary-Optimization-Laboratory/rmoo/branch/master/graph/badge.svg?token=QK4Z2yVUSw/)](https://codecov.io/gh/Evolutionary-Optimization-Laboratory/rmoo?branch=master/) [![CRAN status](https://www.r-pkg.org/badges/version/rmoo)](https://CRAN.R-project.org/package=rmoo/) [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable/) <!-- badges: end -->
 
 ## Overview
 
@@ -85,7 +85,7 @@ polar(fitness = result@fitness[1:3,])
 ![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-4.png)<!-- -->
 
 ``` r
-#Headmap Plot
+#Heatmap Plot
 heat_map(fitness = result@fitness[1:3,])
 ```
 
