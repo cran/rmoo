@@ -73,7 +73,9 @@ Summary <- function(object, ...) {
   return(summ)
 }
 
+#Summary for NSGA Algorithm
 nsgaSummary <- function(object, ...) {
+  # Calculate information for summary
   first <- object@f[[1]]
   first_front_fit <- object@fitness[first, ]
   first_front_pop <- object@population[first, ]
@@ -86,7 +88,9 @@ nsgaSummary <- function(object, ...) {
   return(result)
 }
 
+#Summary for NSGA-II Algorithm
 nsgaiiSummary <- function(object, ...) {
+  # Calculate information for summary
   first <- object@f[[1]]
   first_front_fit <- object@fitness[first, ]
   first_front_pop <- object@population[first, ]
@@ -99,6 +103,7 @@ nsgaiiSummary <- function(object, ...) {
   return(result)
 }
 
+#Summary for NSGA-III Algorithm
 nsgaiiiSummary <- function(object, ...) {
   first <- object@f[[1]]
   first_front_fit <- object@fitness[first, ]
@@ -110,14 +115,14 @@ nsgaiiiSummary <- function(object, ...) {
   igd <- ecr::computeInvertedGenerationalDistance(t(object@fitness), t(object@reference_points))
   hv <- ecr::computeHV(t(object@fitness))
   metric <- data.frame(Iternation = object@iter,
-    Generational_Distance = gd,
-    Inverse_Generational_Distance = igd,
-    Hypervolumen = hv)
+                       Generational_Distance = gd,
+                       Inverse_Generational_Distance = igd,
+                       Hypervolumen = hv)
   result <- list(first_front_fit = first_front_fit,
-    first_front_pop = first_front_pop,
-    ideal_point = ideal_point,
-    worst_point = worst_point,
-    extreme_points = extreme_points,
-    metrics = metric)
+                 first_front_pop = first_front_pop,
+                 ideal_point = ideal_point,
+                 worst_point = worst_point,
+                 extreme_points = extreme_points,
+                 metrics = metric)
   return(result)
 }
