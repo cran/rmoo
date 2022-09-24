@@ -20,9 +20,9 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 A Non-Dominated Sorting based Multi-Objective Optimization package,
 built upon the [‘GA’ package](https://CRAN.R-project.org/package=GA).
 
-‘rmoo’ provides a complete and flexible framework for optimizing
-multiple supplied objectives. You will have at your disposal a wide
-range of configuration options for the NSGA, NSGA-II and NSGA-III
+`rmoo` provides a complete, flexible and modular framework for
+optimizing multiple supplied objectives. You will have at your disposal
+a wide range of configuration options for the NSGA, NSGA-II and NSGA-III
 algorithms, as well as representation of real numbers, permutations and
 binaries.
 
@@ -45,12 +45,14 @@ devtools::install_github("Evolutionary-Optimization-Laboratory/rmoo")
 
 ## Usage
 
-A simple example of running nsga3 solving the DTLZ1 problem:
+All the algorithms implemented in `rmoo` are called throught rmoo
+function. It will receive all the necessary parameters for execution. In
+this simple example, we solve the DTLZ1 problem, using the NSGA-III:
 
 ``` r
 library(rmoo)
 
-DTLZ1 <- function (x, nobj = 3) 
+DTLZ1 <- function (x, nobj = 3, ...) 
 {
     if (is.null(dim(x))) {
         x <- matrix(x, 1)
@@ -67,43 +69,73 @@ DTLZ1 <- function (x, nobj = 3)
     return(f)
 }
 
-result <- nsga3(fitness = DTLZ1,
+result <- rmoo(fitness = DTLZ1,
                 type = "real-valued",
+                strategy = "NSGA-III",
                 lower = c(0,0,0),
                 upper = c(1,1,1),
+                monitor = FALSE,
+                summary = FALSE,
                 popSize = 92,
                 n_partitions = 12,
                 maxiter = 300)
-                
-pcp(object = result)
+```
+
+The rmoo package has a set of S4 method that can help the user to
+visualize, analysis, and interpret the results.
+
+We are going to show how use the `plot` method, since depending on the
+parameter it will display difference plots, e.g. passing “pcp” as
+parameter for type, the method displays the Parallel Coordinate Plot:
+
+``` r
+plot(result, type="pcp")
 ```
 
 ![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-1.png)<!-- -->
 
+Another example of plot method is when no parameters are passed, the
+method by default display the scatter plot. It evaluates the result
+dimensionality and depending on this, it will display 2-D, 3-D or
+Pairwise Scatter Plot.
+
 ``` r
 #Scatter without optimal points
-scatter(object = result)
+plot(result)
 ```
 
 ![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-2.png)<!-- -->
 
+When displaying the scatter plot, reference points can be passed as
+parameters of the optimal argument, allowing the results to be compared
+to them:
+
 ``` r
 #Scatter with optimal points (Using reference points as optimal points)
-scatter(object = result, optimal = result@reference_points)
+plot(result, optimal = result@reference_points)
 ```
 
 ![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-3.png)<!-- -->
 
+Other plots available in `rmoo` are heatmap and polar coordinate, both
+allow the user to view specific solutions.
+
 ``` r
 #Polar Coordinates
-polar(fitness = result@fitness[1:3,])
+plot(result, type="polar", individual = c(1:3))
 ```
 
 ![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-4.png)<!-- -->
 
 ``` r
 #Heatmap Plot
-heat_map(fitness = result@fitness[1:3,])
+plot(result, type="heatmap", individual = c(1:3))
 ```
 
 ![](https://github.com/Evolutionary-Optimization-Laboratory/rmoo/blob/master/man/figures/README-example-5.png)<!-- -->
+
+Other methods available in `rmoo` that may be of interest are
+`getFitness()`, `getPopulation()`, `getMetrics()`, `print()`,
+`summary()` and others. We do not show the functionality of all these
+functions since they will be detailed in depth in the future article and
+vignettes.
