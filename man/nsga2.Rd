@@ -11,12 +11,12 @@ nsga2(
   lower,
   upper,
   nBits,
-  population = nsgaControl(type)$population,
-  selection = nsgaControl(type)$selection,
-  crossover = nsgaControl(type)$crossover,
-  mutation = nsgaControl(type)$mutation,
+  population = rmooControl(type)$population,
+  selection = rmooControl(type)$selection,
+  crossover = rmooControl(type)$crossover,
+  mutation = rmooControl(type)$mutation,
   popSize = 50,
-  nObj = ncol(fitness(matrix(10000, ncol = 100, nrow = 100))),
+  nObj = NULL,
   pcrossover = 0.8,
   pmutation = 0.1,
   maxiter = 100,
@@ -24,7 +24,8 @@ nsga2(
   maxFitness = Inf,
   names = NULL,
   suggestions = NULL,
-  monitor = if (interactive()) nsgaMonitor else FALSE,
+  parallel = FALSE,
+  monitor = if (interactive()) rmooMonitor else FALSE,
   summary = FALSE,
   seed = NULL
 )
@@ -60,20 +61,19 @@ encoded optimizations.}
 encoded optimizations}
 
 \item{population}{an R function for randomly generating an initial population.
-See \code{\link[=nsga_Population]{nsga_Population()}} for available functions.}
+See \code{\link[=rmoo_Population]{rmoo_Population()}} for available functions.}
 
 \item{selection}{an R function performing selection, i.e. a function which
 generates a new population of individuals from the current population
-probabilistically according to individual fitness. See \code{\link[=nsga_Selection]{nsga_Selection()}}
-for available functions.}
+probabilistically according to individual fitness.}
 
 \item{crossover}{an R function performing crossover, i.e. a function which
 forms offsprings by combining part of the genetic information from their
-parents. See \code{\link[=nsga_Crossover]{nsga_Crossover()}} for available functions.}
+parents. See \code{\link[=rmoo_Crossover]{rmoo_Crossover()}} for available functions.}
 
 \item{mutation}{an R function performing mutation, i.e. a function which
 randomly alters the values of some genes in a parent chromosome.
-See \code{\link[=nsga_Mutation]{nsga_Mutation()}} for available functions.}
+See \code{\link[=rmoo_Mutation]{rmoo_Mutation()}} for available functions.}
 
 \item{popSize}{the population size.}
 
@@ -101,9 +101,12 @@ variables.}
 initial population. If provided the number of columns must match the number
 of decision variables.}
 
+\item{parallel}{An optional argument which allows to specify if the NSGA-II
+should be run sequentially or in parallel.}
+
 \item{monitor}{a logical or an R function which takes as input the current
 state of the nsga-class object and show the evolution of the search. By
-default, for interactive sessions the function nsgaMonitor prints the average
+default, for interactive sessions the function rmooMonitor prints the average
 and best fitness values at each iteration. If set to plot these information
 are plotted on a graphical device. Other functions can be written by the user
 and supplied as argument. In non interactive sessions, by default
@@ -148,6 +151,7 @@ result <- nsga2(type = "real-valued",
                 lower = c(0,0),
                 upper = c(1,1),
                 popSize = 100,
+                nObj = 2,
                 monitor = FALSE,
                 maxiter = 500)
 }
@@ -173,8 +177,10 @@ dtlz1 <- function (x, nobj = 3){
 \dontrun{
 result <- nsga2(type = "real-valued",
                 fitness = dtlz1,
-                lower = c(0,0,0), upper = c(1,1,1),
+                lower = c(0,0,0),
+                upper = c(1,1,1),
                 popSize = 92,
+                nObj = 3,
                 monitor = FALSE,
                 maxiter = 500)
 }

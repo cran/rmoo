@@ -33,17 +33,16 @@
 #' @param nBits a value specifying the number of bits to be used in binary
 #' encoded optimizations.
 #' @param population an R function for randomly generating an initial population.
-#' See [nsga_Population()] for available functions.
+#' See [rmoo_Population()] for available functions.
 #' @param selection an R function performing selection, i.e. a function which
 #' generates a new population of individuals from the current population
 #' probabilistically according to individual fitness.
-#' See [nsga_Selection()] for available functions.
 #' @param crossover an R function performing crossover, i.e. a function which
 #' forms offsprings by combining part of the genetic information from
-#' their parents. See [nsga_Crossover()] for available functions.
+#' their parents. See [rmoo_Crossover()] for available functions.
 #' @param mutation an R function performing mutation, i.e. a function which
 #' randomly alters the values of some genes in a parent chromosome.
-#' See [nsga_Mutation()] for available functions.
+#' See [rmoo_Mutation()] for available functions.
 #' @param popSize the population size.
 #' @param nObj number of objective in the fitness function.
 #' @param dshare the maximun phenotypic distance allowed between any two
@@ -65,7 +64,7 @@
 #' of decision variables.
 #' @param monitor a logical or an R function which takes as input the current
 #' state of the nsga-class object and show the evolution of the search. By
-#' default, for interactive sessions the function nsgaMonitor prints the average
+#' default, for interactive sessions the function rmooMonitor prints the average
 #' and best fitness values at each iteration. If set to plot these information
 #' are plotted on a graphical device. Other functions can be written by the user
 #' and supplied as argument. In non interactive sessions, by default
@@ -110,6 +109,7 @@
 #'                lower = c(0,0),
 #'                upper = c(1,1),
 #'                popSize = 100,
+#'                nObj = 2,
 #'                dshare = 1,
 #'                monitor = FALSE,
 #'                maxiter = 500)
@@ -119,12 +119,12 @@
 nsga <- function (type = c("binary", "real-valued", "permutation"),
     fitness, ...,
     lower, upper, nBits,
-    population = nsgaControl(type)$population,
-    selection = nsgaControl(type)$selection,
-    crossover = nsgaControl(type)$crossover,
-    mutation = nsgaControl(type)$mutation,
+    population = rmooControl(type)$population,
+    selection = rmooControl(type)$selection,
+    crossover = rmooControl(type)$crossover,
+    mutation = rmooControl(type)$mutation,
     popSize = 50,
-    nObj = ncol(fitness(matrix(10000, ncol = 100, nrow = 100))),
+    nObj = NULL,
     dshare,
     pcrossover = 0.8,
     pmutation = 0.1,
@@ -133,13 +133,13 @@ nsga <- function (type = c("binary", "real-valued", "permutation"),
     maxFitness = Inf,
     names = NULL,
     suggestions = NULL,
-    monitor = if (interactive()) nsgaMonitor else FALSE,
+    monitor = if (interactive()) rmooMonitor else FALSE,
     summary = FALSE,
     seed = NULL)
 {
     call <- match.call()
 
-    type <- match.arg(type, choices = eval(formals(nsga2)$type))
+    type <- match.arg(type, choices = eval(formals(nsga)$type))
 
     callArgs <- list(...)
 
@@ -153,6 +153,14 @@ nsga <- function (type = c("binary", "real-valued", "permutation"),
       crossover <- get(crossover)
     if (!is.function(mutation))
       mutation <- get(mutation)
+
+    if (is.null(nObj)) {
+      stop("Please, define the objective number (nObj)")
+    } else {
+      if (!is.numeric(nObj) | (nObj%%1!=0)) {
+        stop("Objective number (nObj) is a character or is not an integer.")
+      }
+    }
 
     if (missing(fitness)) {
       stop("A fitness function must be provided")
@@ -182,9 +190,9 @@ nsga <- function (type = c("binary", "real-valued", "permutation"),
       stop("A lower and upper range of values (for 'real-valued' or 'permutation') or nBits (for 'binary') must be provided!")
     }
 
-    if (is.null(nObj)) {
-      nObj <- ncol(fitness(matrix(10000, ncol = 100, nrow = 100)))
-    }
+    # if (is.null(nObj)) {
+    #   nObj <- ncol(fitness(matrix(10000, ncol = 100, nrow = 100)))
+    # }
 
     dum_Fitness <- matrix(NA, nrow = popSize, ncol = nObj);
     initialDummy <- popSize
@@ -242,7 +250,8 @@ nsga <- function (type = c("binary", "real-valued", "permutation"),
 
     # check monitor arg
     if (is.logical(monitor)) {
-      if (monitor) monitor <- nsgaMonitor
+      if (monitor)
+        monitor <- rmooMonitor
     }
     if (is.null(monitor)) monitor <- FALSE
 
@@ -290,13 +299,13 @@ nsga <- function (type = c("binary", "real-valued", "permutation"),
 
     switch(type,
       binary = {
-        Pop <- matrix(as.double(NA), nrow = popSize, ncol = nBits)
+        Pop <- matrix(NA_real_, nrow = popSize, ncol = nBits)
       },
       `real-valued` = {
-        Pop <- matrix(as.double(NA), nrow = popSize, ncol = nvars)
+        Pop <- matrix(NA_real_, nrow = popSize, ncol = nvars)
       },
       permutation = {
-        Pop <- matrix(as.double(NA), nrow = popSize, ncol = nvars)
+        Pop <- matrix(NA_real_, nrow = popSize, ncol = nvars)
       }
     )
 
@@ -400,7 +409,8 @@ nsga <- function (type = c("binary", "real-valued", "permutation"),
 
       #Plot front non-dominated by iteration
       if (is.function(monitor)) {
-        monitor(object = object, number_objective = nObj)
+        monitor(object = object, callArgs)
+        # monitor(object = object, number_objective = nObj)
       }
 
       if (max(Fitness, na.rm = TRUE) >= maxFitness)

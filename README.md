@@ -17,14 +17,16 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 
 ## Overview
 
-A Non-Dominated Sorting based Multi-Objective Optimization package,
-built upon the [‘GA’ package](https://CRAN.R-project.org/package=GA).
-
-`rmoo` provides a complete, flexible and modular framework for
-optimizing multiple supplied objectives. You will have at your disposal
-a wide range of configuration options for the NSGA, NSGA-II and NSGA-III
-algorithms, as well as representation of real numbers, permutations and
+`rmoo` is a non-dominated sorting based multi-objective optimization
+package built upon the [‘GA’
+package](https://CRAN.R-project.org/package=GA). It provides a
+comprehensive, flexible, and modular framework for multi/many-objective
+optimization. Users have a wide range of configuration options at their
+disposal, including the representation of real-values, permutations, and
 binaries.
+
+The algorithms available in `rmoo` include GA, NSGA-I, NSGA-II,
+R-NSGA-II, and NSGA-III.
 
 ## Installation
 
@@ -69,16 +71,20 @@ DTLZ1 <- function (x, nobj = 3, ...)
     return(f)
 }
 
+ref_points <- generate_reference_points(3,12)
+
 result <- rmoo(fitness = DTLZ1,
-                type = "real-valued",
-                strategy = "NSGA-III",
-                lower = c(0,0,0),
-                upper = c(1,1,1),
-                monitor = FALSE,
-                summary = FALSE,
-                popSize = 92,
-                n_partitions = 12,
-                maxiter = 300)
+               type = "real-valued",
+               algorithm = "NSGA-III",
+               lower = c(0,0,0),
+               upper = c(1,1,1),
+               monitor = FALSE,
+               summary = FALSE,
+               parallel = FALSE,
+               nObj = 3,
+               reference_dirs = ref_points,
+               popSize = 92,
+               maxiter = 300)
 ```
 
 The rmoo package has a set of S4 method that can help the user to
@@ -139,3 +145,34 @@ Other methods available in `rmoo` that may be of interest are
 `summary()` and others. We do not show the functionality of all these
 functions since they will be detailed in depth in the future article and
 vignettes.
+
+## Citation
+
+Until the submission of the formal article that introduces **rmoo**,
+please cite using:
+
+> Benitez F., Pinto-Roa Diego P. (2023). *rmoo: Multi-Objective
+> Optimization in R*. R package version 0.2.3
+> <https://CRAN.R-project.org/package=rmoo/>.
+
+BibTeX entries for LaTeX users:
+
+    @Manual{,
+        title = {{rmoo}: Multi-Objective Optimization in R},
+        author = {Francisco Benitez and Diego P. {Pinto-Roa}},
+        year = {2023},
+        note = {R package version 0.2.3},
+        url = {https://CRAN.R-project.org/package=rmoo/},
+    }
+
+or
+
+    @INPROCEEDINGS{10418638,
+        author={Francisco, J. Benítez and Diego, P. Pinto-Roa and Miguel, García-Torres and Parameshachari, B. D.},
+        booktitle={2023 IEEE CHILEAN Conference on Electrical, Electronics Engineering, Information and Communication Technologies (CHILECON)}, 
+        title={A Hybrid Approach for Many-Objective Feature Selection in Intrusion Detection on Windows Operating Systems}, 
+        year={2023},
+        volume={},
+        number={},
+        pages={1-6},
+        doi={10.1109/CHILECON60335.2023.10418638/}}

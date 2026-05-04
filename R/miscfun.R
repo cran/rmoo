@@ -1,5 +1,5 @@
 #' @export
-nsgaMonitor <- function(object, number_objectives, ...) {
+rmooMonitor <- function(object, ...) {
   if (!requireNamespace("rgl", quietly = TRUE)){
     stop("packages 'rgl' required for Monitor, please install it!")
   }
@@ -7,6 +7,7 @@ nsgaMonitor <- function(object, number_objectives, ...) {
   #         requireNamespace("grDevices", quietly = TRUE))){
   #   stop("packages 'rgl' and 'grDevices' required for Monitor, please install it!")
   # }
+  number_objectives <- ncol(object@fitness)
   fitness <- object@fitness
   iter <- object@iter
   cl <- grDevices::rainbow(object@popSize)
@@ -461,7 +462,7 @@ polar <- function(object, ...){
     ggplot2::facet_wrap(~Pop, nrow = 1)
 }
 
-utils::globalVariables(c("Pop","Objective_No", "Objective_Value", "Var1", "Var2", "color", "columns", "f_1", "f_2", "label_both", "rows", "value", "x", "y"))
+utils::globalVariables(c("Pop","Objective_No", "Objective_Value", "Var1", "Var2", "color", "columns", "f_1", "f_2", "label_both", "rows", "value", "x", "y", "i.", "%DO%"))
 
 
 

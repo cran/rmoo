@@ -3,7 +3,6 @@
 \docType{package}
 \name{rmoo-package}
 \alias{rmoo-package}
-\alias{_PACKAGE}
 \title{rmoo: Multi-Objective Optimization in R}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
@@ -23,7 +22,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Diego Pinto Roa \email{dpinto@pol.una.py} (\href{https://orcid.org/0000-0003-2479-9876}{ORCID})
+  \item Diego P. Pinto-Roa \email{dpinto@pol.una.py} (\href{https://orcid.org/0000-0003-2479-9876}{ORCID})
 }
 
 }

@@ -33,17 +33,16 @@
 #' @param nBits a value specifying the number of bits to be used in binary
 #' encoded optimizations
 #' @param population an R function for randomly generating an initial population.
-#' See [nsga_Population()] for available functions.
+#' See [rmoo_Population()] for available functions.
 #' @param selection an R function performing selection, i.e. a function which
 #' generates a new population of individuals from the current population
-#' probabilistically according to individual fitness. See [nsga_Selection()]
-#' for available functions.
+#' probabilistically according to individual fitness.
 #' @param crossover an R function performing crossover, i.e. a function which
 #' forms offsprings by combining part of the genetic information from their
-#' parents. See [nsga_Crossover()] for available functions.
+#' parents. See [rmoo_Crossover()] for available functions.
 #' @param mutation an R function performing mutation, i.e. a function which
 #' randomly alters the values of some genes in a parent chromosome.
-#' See [nsga_Mutation()] for available functions.
+#' See [rmoo_Mutation()] for available functions.
 #' @param popSize the population size.
 #' @param nObj number of objective in the fitness function.
 #' @param pcrossover the probability of crossover between pairs of chromosomes.
@@ -61,9 +60,11 @@
 #' @param suggestions a matrix of solutions strings to be included in the
 #' initial population. If provided the number of columns must match the number
 #' of decision variables.
+#' @param parallel An optional argument which allows to specify if the NSGA-II
+#' should be run sequentially or in parallel.
 #' @param monitor a logical or an R function which takes as input the current
 #' state of the nsga-class object and show the evolution of the search. By
-#' default, for interactive sessions the function nsgaMonitor prints the average
+#' default, for interactive sessions the function rmooMonitor prints the average
 #' and best fitness values at each iteration. If set to plot these information
 #' are plotted on a graphical device. Other functions can be written by the user
 #' and supplied as argument. In non interactive sessions, by default
@@ -109,6 +110,7 @@
 #'                 lower = c(0,0),
 #'                 upper = c(1,1),
 #'                 popSize = 100,
+#'                 nObj = 2,
 #'                 monitor = FALSE,
 #'                 maxiter = 500)
 #' }
@@ -134,8 +136,10 @@
 #' \dontrun{
 #' result <- nsga2(type = "real-valued",
 #'                 fitness = dtlz1,
-#'                 lower = c(0,0,0), upper = c(1,1,1),
+#'                 lower = c(0,0,0),
+#'                 upper = c(1,1,1),
 #'                 popSize = 92,
+#'                 nObj = 3,
 #'                 monitor = FALSE,
 #'                 maxiter = 500)
 #' }
@@ -144,12 +148,12 @@
 nsga2 <- function(type = c("binary", "real-valued", "permutation"),
     fitness, ...,
     lower, upper, nBits,
-    population = nsgaControl(type)$population,
-    selection = nsgaControl(type)$selection,
-    crossover = nsgaControl(type)$crossover,
-    mutation = nsgaControl(type)$mutation,
+    population = rmooControl(type)$population,
+    selection = rmooControl(type)$selection,
+    crossover = rmooControl(type)$crossover,
+    mutation = rmooControl(type)$mutation,
     popSize = 50,
-    nObj = ncol(fitness(matrix(10000, ncol = 100, nrow = 100))),
+    nObj = NULL,
     pcrossover = 0.8,
     pmutation = 0.1,
     maxiter = 100,
@@ -157,7 +161,8 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
     maxFitness = Inf,
     names = NULL,
     suggestions = NULL,
-    monitor = if (interactive()) nsgaMonitor else FALSE,
+    parallel = FALSE,
+    monitor = if (interactive()) rmooMonitor else FALSE,
     summary = FALSE,
     seed = NULL)
 {
@@ -177,6 +182,14 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
         crossover <- get(crossover)
     if (!is.function(mutation))
         mutation <- get(mutation)
+
+    if (is.null(nObj)) {
+      stop("Please, define the objective number (nObj)")
+    } else {
+      if (!is.numeric(nObj) | (nObj%%1!=0)) {
+        stop("Objective number (nObj) is a character or is not an integer.")
+      }
+    }
 
     if (missing(fitness)) {
         stop("A fitness function must be provided")
@@ -203,10 +216,6 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
 
     if (missing(lower) & missing(upper) & missing(nBits)) {
         stop("A lower and upper range of values (for 'real-valued' or 'permutation') or nBits (for 'binary') must be provided!")
-    }
-
-    if (is.null(nObj)) {
-        nObj <- ncol(fitness(matrix(10000, ncol = 100, nrow = 100)))
     }
 
     switch(type, binary = {
@@ -256,10 +265,28 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
     # check monitor arg
     if (is.logical(monitor)) {
         if (monitor)
-            monitor <- nsgaMonitor
+            monitor <- rmooMonitor
     }
     if (is.null(monitor))
         monitor <- FALSE
+
+    # Start parallel computing (if needed)
+    if(is.logical(parallel)){
+      if(parallel) {
+        parallel <- startParallel(parallel)
+        stopCluster <- TRUE
+      } else {
+        parallel <- stopCluster <- FALSE
+      }
+    }else {
+      stopCluster <- if(inherits(parallel, "cluster")) FALSE else TRUE
+      parallel <- startParallel(parallel)
+    }
+    on.exit(if(parallel & stopCluster)
+      stopParallel(attr(parallel, "cluster")))
+    # define operator to use depending on parallel being TRUE or FALSE
+    `%DO%` <- if(parallel && requireNamespace("doRNG", quietly = TRUE)){
+      doRNG::`%dorng%` } else if (parallel){ foreach::`%dopar%` } else { foreach::`%do%` }
 
     # set seed for reproducibility
     if (!is.null(seed))
@@ -301,13 +328,13 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
     if (maxiter == 0)
         return(object)
 
-    p_fit <- q_fit <- matrix(as.double(NA), nrow = popSize, ncol = nObj)
+    p_fit <- q_fit <- matrix(NA_real_, nrow = popSize, ncol = nObj)
     switch(type, binary = {
-        Pop <- P <- Q <- matrix(as.double(NA), nrow = popSize, ncol = nBits)
+        Pop <- P <- Q <- matrix(NA_real_, nrow = popSize, ncol = nBits)
     }, `real-valued` = {
-        Pop <- P <- Q <- matrix(as.double(NA), nrow = popSize, ncol = nvars)
+        Pop <- P <- Q <- matrix(NA_real_, nrow = popSize, ncol = nvars)
     }, permutation = {
-        Pop <- P <- Q <- matrix(as.double(NA), nrow = popSize, ncol = nvars)
+        Pop <- P <- Q <- matrix(NA_real_, nrow = popSize, ncol = nvars)
     })
 
     ng <- min(nrow(suggestions), popSize)
@@ -320,10 +347,19 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
     }
     object@population <- Pop
 
-    for (i in seq_len(popSize)) {
+    if(!parallel) {
+      for (i in seq_len(popSize)) {
         if (is.na(Fitness[i])) {
-            fit <- do.call(fitness, c(list(Pop[i, ]), callArgs))
-            Fitness[i, ] <- fit
+          fit <- do.call(fitness, c(list(Pop[i, ]), callArgs))
+          Fitness[i, ] <- fit
+        }
+      }
+    } else {
+      Fitness <- foreach(i. = seq_len(popSize), .combine = "rbind") %DO%
+        { if(is.na(Fitness[i.]))
+          do.call(fitness, c(list(Pop[i.,]), callArgs))
+          else
+            Fitness[i.,]
         }
     }
 
@@ -334,7 +370,7 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
     out <- non_dominated_fronts(object)
     object@f <- out$fit
     object@front <- matrix(unlist(out$fronts), ncol = 1, byrow = TRUE)
-    object@crowdingDistance <- matrix(as.double(NA), nrow = popSize)
+    object@crowdingDistance <- matrix(NA_real_, nrow = popSize)
 
     for (iter in seq_len(maxiter)) {
         object@iter <- iter
@@ -387,10 +423,19 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
         object@fitness <- q_fit <- Fitness
 
         # Evaluate Fitness
-        for (i in seq_len(popSize)) {
+        if(!parallel) {
+          for (i in seq_len(popSize)) {
             if (is.na(Fitness[i])) {
-                fit <- do.call(fitness, c(list(Pop[i, ]), callArgs))
-                Fitness[i, ] <- fit
+              fit <- do.call(fitness, c(list(Pop[i, ]), callArgs))
+              Fitness[i, ] <- fit
+            }
+          }
+        } else {
+          Fitness <- foreach(i. = seq_len(popSize), .combine = "rbind") %DO%
+            { if(is.na(Fitness[i.]))
+              do.call(fitness, c(list(Pop[i.,]), callArgs))
+              else
+                Fitness[i.,]
             }
         }
 
@@ -405,10 +450,11 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
         object@f <- out$fit
         object@front <- matrix(unlist(out$fronts), ncol = 1, byrow = TRUE)
 
+        #NSGA-II Operator
         cd <- crowding_distance(object, nObj)
         object@crowdingDistance <- cd
 
-        # Sorted porpulation and fitness by front and crowding distance
+        # Sorted population, crowding and fitness by front and crowding distance
         populationsorted <- object@population[order(object@front, -object@crowdingDistance), ]
         fitnesssorted <- object@fitness[order(object@front, -object@crowdingDistance), ]
 
@@ -432,7 +478,9 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
 
         # Plot front non-dominated by iteration
         if (is.function(monitor)) {
-            monitor(object = object, number_objective = nObj)
+          monitor(object = object, callArgs)
+            # monitor(object = object, number_objective = nObj)
+
         }
 
         if (max(Fitness, na.rm = TRUE) >= maxFitness)
@@ -445,6 +493,75 @@ nsga2 <- function(type = c("binary", "real-valued", "permutation"),
 
     return(solution)
 }
+
+## NSGA-II Bare Process
+# @export
+nsga_ii <- function(object, nObj) {
+  fitness <- t(object@fitness)
+  popSize <- object@popSize
+  new.pop.idxs <- integer()
+
+  max.rank = max(object@front)
+
+  idxs.by.rank = object@f
+
+  front.len <- sapply(idxs.by.rank, length)
+  cum.front.len <- cumsum(front.len)
+
+  front.first.nonfit <- which.first(cum.front.len > popSize)
+
+  if (front.first.nonfit > 1L) {
+    new.pop.idxs <- unlist(idxs.by.rank[1:(front.first.nonfit - 1L)])
+  }
+
+  n.diff = popSize - length(new.pop.idxs)
+
+  if (n.diff > 0L) {
+    idxs.first.nonfit <- idxs.by.rank[[front.first.nonfit]]
+    cds <- ecr::computeCrowdingDistance(fitness[, idxs.first.nonfit, drop = FALSE])
+    idxs2 <- order(cds, decreasing = TRUE)[1:n.diff]
+    new.pop.idxs <- c(new.pop.idxs, idxs.first.nonfit[idxs2])
+  }
+
+  object@population <- p_pop <- object@population[new.pop.idxs,]
+  object@fitness <- p_fit <- object@fitness[new.pop.idxs,]
+
+  out <- non_dominated_fronts(object)
+  object@f <- out$fit
+  object@front <- matrix(unlist(out$fronts), ncol = 1, byrow = TRUE)
+
+  object@crowdingDistance <- crowding_distance(object, nObj)
+  # object@crowdingDistance <- ecr::computeCrowdingDistance(t(object@fitness))
+
+  out <- list(object = object,
+              p_pop = p_pop,
+              p_fit = p_fit)
+
+  return(out)
+}
+# nsga_ii <- function(object, nObj) {
+#   cd <- crowding_distance(object, nObj)
+#   object@crowdingDistance <- cd
+#
+#   populationsorted <- object@population[order(object@front, -object@crowdingDistance), ]
+#   fitnesssorted <- object@fitness[order(object@front, -object@crowdingDistance), ]
+#
+#   object@population <- P <- Pop <- populationsorted[1:object@popSize, ]
+#   object@fitness <- p_fit <- fitnesssorted[1:object@popSize, ]
+#
+#   out <- non_dominated_fronts(object)
+#   object@f <- out$fit
+#   object@front <- matrix(unlist(out$fronts), ncol = 1, byrow = TRUE)
+#
+#   cd <- crowding_distance(object, nObj)
+#   object@crowdingDistance <- cd
+#
+#   out <- list(object = object,
+#               p_pop = Pop,
+#               p_fit = p_fit)
+#
+#   return(out)
+# }
 
 # @export
 #' @rdname progress-methods
